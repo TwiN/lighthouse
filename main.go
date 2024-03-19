@@ -40,6 +40,9 @@ func init() {
 			intervalInMinutes = 1
 		}
 	}
+	if len(webhookURL) == 0 {
+		panic("environment variable WEBHOOK_URL is not defined")
+	}
 }
 
 func main() {
