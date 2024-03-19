@@ -1,8 +1,10 @@
 name: publish-latest
 on:
-  workflow_run:
-    branches: [master]
-    types: [completed]
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '*.md'
 concurrency:
   group: ${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}::${{ github.workflow }}
   cancel-in-progress: true
