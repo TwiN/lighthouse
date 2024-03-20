@@ -71,11 +71,13 @@ func checkPods(kubernetesClient kubernetes.Interface, report *Report) {
 				state, reason, message := extractNameReasonMessageFromContainerState(containerStatus.State)
 				if !containerStatus.Ready && (containerStatus.RestartCount > 0 || (state == "Waiting" && (reason == "ErrImagePull" || reason == "ImagePullBackOff"))) {
 					if pod.Status.Phase == v1.PodPending {
+						log.Printf("[checkPods] Found pod=%s in namespace=%s that is stuck in a Pending state\n", pod.GetName(), pod.GetNamespace())
 						report.Problems = append(report.Problems, Problem{
 							Summary:     fmt.Sprintf("Pod %s in %s is stuck in a Pending state", pod.GetName(), pod.GetNamespace()),
 							Description: fmt.Sprintf("Container `%s` is in state `%s` because of reason `%s`:\n```%s```\n", containerStatus.Name, state, reason, message),
 						})
 					} else {
+						log.Printf("[checkPods] Found pod=%s in namespace=%s with restartCount=%d due to reason=%s\n", pod.GetName(), pod.GetNamespace(), containerStatus.RestartCount, reason)
 						report.Problems = append(report.Problems, Problem{
 							Summary:     fmt.Sprintf("Pod %s in %s has restarted %d times", pod.GetName(), pod.GetNamespace(), containerStatus.RestartCount),
 							Description: fmt.Sprintf("Container `%s` is in state `%s` because of reason `%s`:\n```%s```\n", containerStatus.Name, state, reason, message),
