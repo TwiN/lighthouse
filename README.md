@@ -2,6 +2,8 @@
 Akin to a lighthouse alone at sea, this application is a standalone monitoring system that watches over the
 Kubernetes cluster it runs in and reports potential issues.
 
+![Discord alert](.github/assets/discord-alert.png)
+
 | Environment variable  | Description                                        | Default value |
 |-----------------------|----------------------------------------------------|---------------|
 | `WEBHOOK_URL`         | Discord webhook URL where alerts will be sent to   | `""` Required |
