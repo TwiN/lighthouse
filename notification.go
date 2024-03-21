@@ -17,7 +17,9 @@ func SendNotification(report Report) {
 	for _, problem := range report.Problems {
 		sb.WriteString("**" + problem.Summary + "**")
 		sb.WriteString("\n")
-		sb.WriteString(problem.Description)
+		if len(problem.Description) > 0 {
+			sb.WriteString(problem.Description)
+		}
 		sb.WriteString("\n")
 	}
 	message := sb.String()

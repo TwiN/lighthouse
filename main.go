@@ -66,21 +66,33 @@ func checkPods(kubernetesClient kubernetes.Interface, report *Report) {
 		return
 	}
 	for _, pod := range pods.Items {
-		if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodPending {
+		minutesSincePodWasCreated := time.Since(pod.GetCreationTimestamp().Time).Minutes()
+		// If the pod has been pending for more than 2 minutes, we need to send an alert
+		if pod.Status.Phase == v1.PodPending && minutesSincePodWasCreated > 2 {
+			log.Printf("[checkPods] Pod with name=%s is in state=%s with reason=%s and message=%s", pod.Name, pod.Status.Phase, pod.Status.Reason, pod.Status.Message)
+			problem := Problem{
+				Summary: fmt.Sprintf("Pod `%s` in `%s` is stuck in a `Pending` state", pod.GetName(), pod.GetNamespace()),
+			}
+			// Try to get more information on why it's in a pending state if possible
 			for _, containerStatus := range pod.Status.ContainerStatuses {
-				state, reason, message := extractNameReasonMessageFromContainerState(containerStatus.State)
-				if !containerStatus.Ready && (containerStatus.RestartCount > 0 || (state == "Waiting" && (reason == "ErrImagePull" || reason == "ImagePullBackOff"))) {
-					if pod.Status.Phase == v1.PodPending {
-						log.Printf("[checkPods] Found pod=%s in namespace=%s that is stuck in a Pending state\n", pod.GetName(), pod.GetNamespace())
+				// If the container is not ready, it's either waiting or terminated, so we need to send an alert
+				if !containerStatus.Ready {
+					state, reason, message := extractNameReasonMessageFromContainerState(containerStatus.State)
+					log.Printf("[checkPods] Pod with name=%s has container=%s in state=%s for reason=%s with message=%s", pod.Name, containerStatus.Name, state, reason, message)
+					problem.Description += fmt.Sprintf("Container `%s` is in state `%s` because of reason `%s`:\n```%s```", containerStatus.Name, state, reason, message)
+				}
+			}
+			report.Problems = append(report.Problems, problem)
+		} else if pod.Status.Phase == v1.PodRunning {
+			for _, containerStatus := range pod.Status.ContainerStatuses {
+				// If the container is not ready, it's either waiting or terminated, so we need to send an alert
+				if !containerStatus.Ready {
+					state, reason, message := extractNameReasonMessageFromContainerState(containerStatus.State)
+					if containerStatus.RestartCount > 0 || (state == "Waiting" && (reason == "ErrImagePull" || reason == "ImagePullBackOff")) {
+						log.Printf("[checkPods] Pod with name=%s has a container in state=%s for reason=%s with message=%s", pod.Name, state, reason, message)
 						report.Problems = append(report.Problems, Problem{
-							Summary:     fmt.Sprintf("Pod %s in %s is stuck in a Pending state", pod.GetName(), pod.GetNamespace()),
-							Description: fmt.Sprintf("Container `%s` is in state `%s` because of reason `%s`:\n```%s```\n", containerStatus.Name, state, reason, message),
-						})
-					} else {
-						log.Printf("[checkPods] Found pod=%s in namespace=%s with restartCount=%d due to reason=%s\n", pod.GetName(), pod.GetNamespace(), containerStatus.RestartCount, reason)
-						report.Problems = append(report.Problems, Problem{
-							Summary:     fmt.Sprintf("Pod %s in %s has restarted %d times", pod.GetName(), pod.GetNamespace(), containerStatus.RestartCount),
-							Description: fmt.Sprintf("Container `%s` is in state `%s` because of reason `%s`:\n```%s```\n", containerStatus.Name, state, reason, message),
+							Summary:     fmt.Sprintf("Pod `%s` in `%s` has restarted `%d` times", pod.GetName(), pod.GetNamespace(), containerStatus.RestartCount),
+							Description: fmt.Sprintf("Container `%s` is in state `%s` because of reason `%s`:\n```%s```", containerStatus.Name, state, reason, message),
 						})
 					}
 				}
