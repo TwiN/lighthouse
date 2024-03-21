@@ -1,5 +1,5 @@
 # lighthouse
-Akin to a lighthouse alone at sea, this application is a standalone monitoring system that watches over the
+Akin to a lighthouse lost at sea, this application is a standalone monitoring system that watches over the
 Kubernetes cluster it runs in and reports potential issues.
 
 ![Discord alert](.github/assets/discord-alert.png)
