@@ -79,7 +79,10 @@ func checkPods(kubernetesClient kubernetes.Interface, report *Report) {
 				if !containerStatus.Ready {
 					state, reason, message := extractNameReasonMessageFromContainerState(containerStatus.State)
 					log.Printf("[checkPods] Pod with name=%s has container=%s in state=%s for reason=%s with message=%s", pod.Name, containerStatus.Name, state, reason, message)
-					problem.Description += fmt.Sprintf("Container `%s` is in state `%s` because of reason `%s`:\n```%s```", containerStatus.Name, state, reason, message)
+					if len(message) > 0 {
+						message = ":\n```" + message + "```"
+					}
+					problem.Description += fmt.Sprintf("Container `%s` is in state `%s` because of reason `%s`%s", containerStatus.Name, state, reason, message)
 				}
 			}
 			report.Problems = append(report.Problems, problem)
@@ -90,9 +93,12 @@ func checkPods(kubernetesClient kubernetes.Interface, report *Report) {
 					state, reason, message := extractNameReasonMessageFromContainerState(containerStatus.State)
 					if containerStatus.RestartCount > 0 || (state == "Waiting" && (reason == "ErrImagePull" || reason == "ImagePullBackOff")) {
 						log.Printf("[checkPods] Pod with name=%s has a container in state=%s for reason=%s with message=%s", pod.Name, state, reason, message)
+						if len(message) > 0 {
+							message = ":\n```" + message + "```"
+						}
 						report.Problems = append(report.Problems, Problem{
 							Summary:     fmt.Sprintf("Pod `%s` in `%s` has restarted `%d` times", pod.GetName(), pod.GetNamespace(), containerStatus.RestartCount),
-							Description: fmt.Sprintf("Container `%s` is in state `%s` because of reason `%s`:\n```%s```", containerStatus.Name, state, reason, message),
+							Description: fmt.Sprintf("Container `%s` is in state `%s` because of reason `%s`%s", containerStatus.Name, state, reason, message),
 						})
 					}
 				}
