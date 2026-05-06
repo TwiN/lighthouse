@@ -1,5 +1,5 @@
-github.com/TwiN/lazywebhooks v0.2.0 h1:eU4DDyy7vLUu0yQDN/HqunfwwU3Oo06z3GmroMhwTyY=
-github.com/TwiN/lazywebhooks v0.2.0/go.mod h1:MEh/5GAoc6PK4UGYtDUDyKuIFCCia+hD/UCMjLrvEOk=
+github.com/TwiN/lazywebhooks v0.4.0 h1:t/SZwi1K0cs4SCrPc+/JcPH9CetAsNNaXpFqsJY4YUI=
+github.com/TwiN/lazywebhooks v0.4.0/go.mod h1:gq9p0F3b3pDETZkTKiYl1mNbdx9yW/AA01IPdbGMY4g=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
